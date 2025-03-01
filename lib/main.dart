@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:intl/intl.dart'; // For date formatting
+import 'package:intl/intl.dart';
 
 void main() {
   runApp(MyApp());
@@ -32,23 +32,18 @@ class _ProductListScreenState extends State<ProductListScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchProducts(); // Fetch products when the screen is loaded
+    _fetchProducts();
   }
 
   Future<void> _fetchProducts() async {
     try {
       final response = await http.get(Uri.parse('http://35.73.30.144:2008/api/v1/ReadProduct'));
       if (response.statusCode == 200) {
-        // Parse the response as a Map
         final Map<String, dynamic> responseData = json.decode(response.body);
-
-        // Extract the list of products from the Map
-        final List<dynamic> productList = responseData['data'] ?? []; // Replace 'data' with the actual key
-
-        // Update the state with the list of products
+        final List<dynamic> productList = responseData['data'] ?? [];
         setState(() {
           products = List<Map<String, dynamic>>.from(productList);
-          isLoading = false; // Data fetching is complete
+          isLoading = false;
         });
       } else {
         throw Exception('Failed to load products');
@@ -56,7 +51,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     } catch (e) {
       print('Error fetching products: $e');
       setState(() {
-        isLoading = false; // Stop loading in case of error
+        isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to load products. Please try again later.')),
@@ -137,22 +132,17 @@ class _ProductListScreenState extends State<ProductListScreen> {
             TextButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
-                  // Generate Product Code using current timestamp
                   final productCode = DateTime.now().millisecondsSinceEpoch;
-
-                  // Create a product with user input and auto-generated Product Code
                   final product = {
                     'ProductName': _nameController.text,
-                    'ProductCode': productCode, // Auto-generated
+                    'ProductCode': productCode,
                     'Img': _imgController.text,
                     'Qty': int.parse(_qtyController.text),
                     'UnitPrice': double.parse(_unitPriceController.text),
                     'TotalPrice': int.parse(_qtyController.text) * double.parse(_unitPriceController.text),
                   };
-
-                  // Call API to create the product
                   _createProduct(product).then((_) {
-                    Navigator.of(context).pop(); // Close the dialog
+                    Navigator.of(context).pop();
                   });
                 }
               },
@@ -237,19 +227,16 @@ class _ProductListScreenState extends State<ProductListScreen> {
             TextButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
-                  // Update the product with user input
                   final updatedProduct = {
                     'ProductName': _nameController.text,
-                    'ProductCode': product['ProductCode'], // Keep the same Product Code
+                    'ProductCode': product['ProductCode'],
                     'Img': _imgController.text,
                     'Qty': int.parse(_qtyController.text),
                     'UnitPrice': double.parse(_unitPriceController.text),
                     'TotalPrice': int.parse(_qtyController.text) * double.parse(_unitPriceController.text),
                   };
-
-                  // Call API to update the product
                   _updateProduct(product['_id'], updatedProduct).then((_) {
-                    Navigator.of(context).pop(); // Close the dialog
+                    Navigator.of(context).pop();
                   });
                 }
               },
@@ -269,7 +256,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
         body: json.encode(product),
       );
       if (response.statusCode == 200) {
-        // Refresh the product list after creation
         _fetchProducts();
       } else {
         throw Exception('Failed to create product. Status code: ${response.statusCode}');
@@ -290,7 +276,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
         body: json.encode(product),
       );
       if (response.statusCode == 200) {
-        // Refresh the product list after update
         _fetchProducts();
       } else {
         throw Exception('Failed to update product. Status code: ${response.statusCode}');
@@ -305,16 +290,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   Future<void> _deleteProduct(String id) async {
     try {
-      print('Deleting product with ID: $id'); // Debug log
+      print('Deleting product with ID: $id');
       final response = await http.delete(
         Uri.parse('http://35.73.30.144:2008/api/v1/DeleteProduct/$id'),
       );
-
       if (response.statusCode == 200) {
-        // Refresh the product list after deletion
         _fetchProducts();
       } else {
-        // Handle non-200 status codes
         print('Failed to delete product. Status code: ${response.statusCode}');
         print('Response body: ${response.body}');
         throw Exception('Failed to delete product. Status code: ${response.statusCode}');
@@ -345,7 +327,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
         toolbarHeight: 80,
       ),
       body: isLoading
-          ? Center(child: CircularProgressIndicator()) // Show loading indicator
+          ? Center(child: CircularProgressIndicator())
           : products.isEmpty
           ? Center(
         child: Column(
@@ -363,7 +345,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
             ),
             SizedBox(height: 16),
             ElevatedButton(
-              onPressed: _showCreateProductDialog, // Open dialog to create product
+              onPressed: _showCreateProductDialog,
               child: Text('Add Product'),
             ),
           ],
@@ -390,7 +372,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
             ),
             child: Row(
               children: [
-                // Product Image
                 Container(
                   width: 80,
                   height: 80,
@@ -403,7 +384,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   ),
                 ),
                 SizedBox(width: 16),
-                // Product Details
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -424,19 +404,18 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     ],
                   ),
                 ),
-                // Edit and Delete Buttons
                 Row(
                   children: [
                     IconButton(
                       icon: Icon(Icons.edit, color: Colors.blue),
                       onPressed: () {
-                        _showEditProductDialog(product); // Open edit dialog
+                        _showEditProductDialog(product);
                       },
                     ),
                     IconButton(
                       icon: Icon(Icons.delete, color: Colors.red),
                       onPressed: () {
-                        _deleteProduct(product['_id']); // Delete product
+                        _deleteProduct(product['_id']);
                       },
                     ),
                   ],
@@ -447,7 +426,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showCreateProductDialog, // Open dialog to create product
+        onPressed: _showCreateProductDialog,
         child: Icon(Icons.add),
       ),
     );
